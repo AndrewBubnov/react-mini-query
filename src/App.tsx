@@ -20,7 +20,7 @@ const usePostsQuery = (postId: number) => {
 };
 
 const Post = ({ postId }: { postId: number }) => {
-	const { status, isFetching, error, data } = usePostsQuery(postId);
+	const { status, isLoading, error, data } = usePostsQuery(postId);
 
 	if (status === 'pending') return 'Loading...';
 
@@ -28,7 +28,7 @@ const Post = ({ postId }: { postId: number }) => {
 
 	return (
 		<div style={{ padding: 20 }}>
-			{isFetching && <p>Re-fetching...</p>}
+			{isLoading && <p>Re-fetching...</p>}
 			<div key={data?.id} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 				<span>{data?.title}</span>
 				<span>{data?.body}</span>

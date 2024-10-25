@@ -5,9 +5,15 @@ type UseQueryParams = {
 	queryFn: (...args: unknown[]) => Promise<unknown>;
 };
 
+enum QueryStatus {
+	Pending = 'pending',
+	Success = 'success',
+	Error = 'error',
+}
+
 type QueryState<T> = {
-	status: string;
-	isFetching: boolean;
+	status: QueryStatus;
+	isLoading: boolean;
 	data?: T;
 	error?: Error;
 	lastUpdated: number;
@@ -36,8 +42,8 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 		fetchingFunction: null,
 		listeners: new Set(),
 		state: {
-			status: 'pending',
-			isFetching: false,
+			status: QueryStatus.Pending,
+			isLoading: false,
 			data: undefined,
 			error: undefined,
 			lastUpdated: 0,
@@ -57,7 +63,7 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 
 			query.setState(state => ({
 				...state,
-				isFetching: true,
+				isLoading: true,
 				error: undefined,
 			}));
 
@@ -66,20 +72,20 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 					const data = (await queryFn()) as T;
 					query.setState(state => ({
 						...state,
-						status: 'success',
+						status: QueryStatus.Success,
 						data,
 						lastUpdated: Date.now(),
 					}));
 				} catch (error) {
 					query.setState(state => ({
 						...state,
-						status: 'error',
+						status: QueryStatus.Error,
 						error: error as Error,
 					}));
 				} finally {
 					query.setState(state => ({
 						...state,
-						isFetching: false,
+						isLoading: false,
 					}));
 					query.fetchingFunction = null;
 				}
@@ -120,7 +126,7 @@ const createQueryObserver = <T>(queryClient: QueryClient<T>, { queryKey, queryFn
 	return {
 		subscribe: (callback: () => void) => {
 			query.listeners.add(callback);
-			if (!query.state.data && !query.state.isFetching) query.fetch();
+			if (!query.state.data && !query.state.isLoading) query.fetch();
 			return () => query.listeners.delete(callback);
 		},
 		getSnapshot: () => query.state,
