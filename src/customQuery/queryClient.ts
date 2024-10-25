@@ -1,5 +1,10 @@
 import { Query, QueryState, QueryStatus, UseQueryParams } from './types.ts';
 
+const areArraysEqual = (arrayA: UseQueryParams['queryKey'], arrayB: UseQueryParams['queryKey']) => {
+	if (arrayA.length !== arrayB.length) return false;
+	return arrayA.every((element, index) => element === arrayB[index]);
+};
+
 const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 	const query: Query<T> = {
 		queryKey,
@@ -78,6 +83,28 @@ export class QueryClient<T> {
 		}
 
 		return this.queries.get(queryHash)!;
+	};
+
+	invalidateQueries = ({ queryKey }: { queryKey: UseQueryParams['queryKey'] }, data?: T) => {
+		const updatedQueryKeys = [...this.queries.keys()].filter(key =>
+			areArraysEqual(this.queries.get(key)?.queryKey || [], queryKey)
+		);
+		const updatedMap = new Map<string, Query<T>>(
+			updatedQueryKeys.reduce<[string, Query<T>][]>(
+				(acc, cur) => {
+					const updatedValue = {
+						...this.queries.get(cur),
+						queryKey,
+						state: { ...this.queries.get(cur)?.state, data },
+					} as Query<T>;
+					acc.push([cur, updatedValue]);
+					return acc;
+				},
+				[] as [string, Query<T>][]
+			)
+		);
+		updatedQueryKeys.forEach(key => this.queries.get(key)?.notify());
+		this.queries = new Map([...this.queries, ...updatedMap]);
 	};
 }
 
