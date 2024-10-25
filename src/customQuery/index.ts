@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore, useMemo } from 'react';
 
 type UseQueryParams = {
 	queryKey: (string | number)[];
@@ -14,18 +14,17 @@ type QueryState<T> = {
 };
 
 type Subscriber<T> = {
-	post: () => void;
-	subscribe: (rerender: () => void) => void;
-	getQueryState: () => QueryState<T>;
+	subscribe: (callback: () => void) => () => void;
+	getSnapshot: () => QueryState<T>;
 };
 
 type Query<T> = {
 	queryKey: (string | number)[];
 	queryHash: string;
-	fetchingFunction: (() => Promise<void>) | null;
-	subscribers: Subscriber<T>[];
+	fetchingFunction: Promise<void> | null;
+	listeners: Set<() => void>;
 	state: QueryState<T>;
-	subscribe: (subscriber: Subscriber<T>) => () => void;
+	notify: () => void;
 	setState: (updater: (arg: QueryState<T>) => QueryState<T>) => void;
 	fetch: () => Promise<void>;
 };
@@ -35,65 +34,58 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 		queryKey,
 		queryHash: JSON.stringify(queryKey),
 		fetchingFunction: null,
-		subscribers: [],
+		listeners: new Set(),
 		state: {
 			status: 'pending',
-			isFetching: true,
+			isFetching: false,
 			data: undefined,
 			error: undefined,
 			lastUpdated: 0,
 		},
 
-		subscribe: newSubscriber => {
-			query.subscribers.push(newSubscriber);
-			return () => {
-				query.subscribers = query.subscribers.filter(subscriber => subscriber !== newSubscriber);
-			};
+		notify: () => {
+			query.listeners.forEach(listener => listener());
 		},
 
 		setState: (updater: (arg: QueryState<T>) => QueryState<T>) => {
 			query.state = updater(query.state);
-			query.subscribers.forEach(s => s.post());
+			query.notify();
 		},
 
 		fetch: async () => {
-			if (!query.fetchingFunction) {
-				query.fetchingFunction = async () => {
-					if (query.state?.data) return;
-					query.setState((state: QueryState<T>) => {
-						return {
-							...state,
-							isFetching: true,
-							error: undefined,
-						};
-					});
+			if (query.fetchingFunction) return query.fetchingFunction;
 
-					try {
-						const data = (await queryFn()) as T;
-						query.setState((state: QueryState<T>) => {
-							return {
-								...state,
-								status: 'success',
-								data,
-								lastUpdated: Date.now(),
-							};
-						});
-					} catch (error) {
-						query.setState((state: QueryState<T>) => {
-							return {
-								...state,
-								status: 'error',
-								error: error as Error,
-							};
-						});
-					} finally {
-						query.setState((state: QueryState<T>) => {
-							return { ...state, isFetching: false };
-						});
-					}
-				};
-			}
-			await query.fetchingFunction();
+			query.setState(state => ({
+				...state,
+				isFetching: true,
+				error: undefined,
+			}));
+
+			query.fetchingFunction = (async () => {
+				try {
+					const data = (await queryFn()) as T;
+					query.setState(state => ({
+						...state,
+						status: 'success',
+						data,
+						lastUpdated: Date.now(),
+					}));
+				} catch (error) {
+					query.setState(state => ({
+						...state,
+						status: 'error',
+						error: error as Error,
+					}));
+				} finally {
+					query.setState(state => ({
+						...state,
+						isFetching: false,
+					}));
+					query.fetchingFunction = null;
+				}
+			})();
+
+			return query.fetchingFunction;
 		},
 	};
 
@@ -101,66 +93,47 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 };
 
 export class QueryClient<T> {
-	queries: Set<Query<T>>;
+	queries: Map<string, Query<T>>;
 
 	constructor() {
-		this.queries = new Set<Query<T>>();
+		this.queries = new Map<string, Query<T>>();
 	}
 
 	getQuery = ({ queryFn, queryKey }: UseQueryParams) => {
 		const queryHash = JSON.stringify(queryKey);
 
-		const query = [...this.queries].find(query => query.queryHash === queryHash);
-		if (query) return query;
+		if (!this.queries.has(queryHash)) {
+			const newQuery = createQuery<T>({ queryKey, queryFn });
+			this.queries.set(queryHash, newQuery);
+		}
 
-		const newQuery = createQuery<T>({ queryKey, queryFn });
-		this.queries.add(newQuery);
-		return newQuery;
+		return this.queries.get(queryHash)!;
 	};
-
-	// getState = () => this.queries;
-
-	// subscribe = (callback) => {
-	// 		subscribers.add(callback);
-	// 		return () => subscribers.delete(callback);
-	// 	}
 }
 
-const createQueryObserver = <T>(queryClient: QueryClient<T>, { queryKey, queryFn }: UseQueryParams) => {
+const createQueryObserver = <T>(queryClient: QueryClient<T>, { queryKey, queryFn }: UseQueryParams): Subscriber<T> => {
 	const query = queryClient.getQuery({
 		queryKey,
 		queryFn,
 	});
 
-	const observer: Subscriber<T> = {
-		post: () => {},
-		subscribe: rerender => {
-			const unsubscribe = query.subscribe(observer);
-			observer.post = rerender;
-			if (!query.state.lastUpdated || Date.now() - query.state.lastUpdated > 0) {
-				query.fetch();
-			}
-			return unsubscribe;
+	return {
+		subscribe: (callback: () => void) => {
+			query.listeners.add(callback);
+			if (!query.state.data && !query.state.isFetching) query.fetch();
+			return () => query.listeners.delete(callback);
 		},
-		getQueryState: () => query.state,
+		getSnapshot: () => query.state,
 	};
-
-	return observer;
 };
 
 export const useQuery = <T>({ queryKey, queryFn }: UseQueryParams): QueryState<T> => {
-	const [, setCount] = useState(0);
+	const observer = useMemo(
+		() => createQueryObserver<T>(queryClient as QueryClient<T>, { queryKey, queryFn }),
+		[JSON.stringify(queryKey)]
+	);
 
-	const observer = createQueryObserver<T>(queryClient as QueryClient<T>, {
-		queryKey,
-		queryFn,
-	});
-
-	const queryHash = JSON.stringify(queryKey);
-
-	useEffect(() => observer.subscribe(() => setCount(c => c + 1)), [queryHash]);
-
-	return observer.getQueryState();
+	return useSyncExternalStore(observer.subscribe, observer.getSnapshot);
 };
 
 export const queryClient = new QueryClient();
