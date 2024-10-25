@@ -4,30 +4,34 @@ type UseQueryParams = {
 	queryKey: (string | number)[];
 	queryFn: (...args: unknown[]) => Promise<unknown>;
 };
-type Subscriber = {
+
+type QueryState<T> = {
+	status: string;
+	isFetching: boolean;
+	data?: T;
+	error?: Error;
+	lastUpdated: number;
+};
+
+type Subscriber<T> = {
 	post: () => void;
 	subscribe: (rerender: () => void) => void;
-	getQueryState: () => Query['state'];
+	getQueryState: () => QueryState<T>;
 };
-type Query = {
+
+type Query<T> = {
 	queryKey: (string | number)[];
 	queryHash: string;
 	fetchingFunction: (() => Promise<void>) | null;
-	subscribers: Subscriber[];
-	state: {
-		status: string;
-		isFetching: boolean;
-		data: unknown;
-		error?: Error;
-		lastUpdated: number;
-	};
-	subscribe: (subscriber: Subscriber) => () => void;
-	setState: (updater: (arg: Query['state']) => Query['state']) => void;
+	subscribers: Subscriber<T>[];
+	state: QueryState<T>;
+	subscribe: (subscriber: Subscriber<T>) => () => void;
+	setState: (updater: (arg: QueryState<T>) => QueryState<T>) => void;
 	fetch: () => Promise<void>;
 };
 
-const createQuery = ({ queryKey, queryFn }: UseQueryParams) => {
-	const query: Query = {
+const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
+	const query: Query<T> = {
 		queryKey,
 		queryHash: JSON.stringify(queryKey),
 		fetchingFunction: null,
@@ -47,7 +51,7 @@ const createQuery = ({ queryKey, queryFn }: UseQueryParams) => {
 			};
 		},
 
-		setState: (updater: (arg: Query['state']) => Query['state']) => {
+		setState: (updater: (arg: QueryState<T>) => QueryState<T>) => {
 			query.state = updater(query.state);
 			query.subscribers.forEach(s => s.post());
 		},
@@ -56,38 +60,35 @@ const createQuery = ({ queryKey, queryFn }: UseQueryParams) => {
 			if (!query.fetchingFunction) {
 				query.fetchingFunction = async () => {
 					if (query.state?.data) return;
-					query.setState((oldState: Query['state']) => {
+					query.setState((state: QueryState<T>) => {
 						return {
-							...oldState,
+							...state,
 							isFetching: true,
 							error: undefined,
 						};
 					});
 
 					try {
-						const data = await queryFn();
-						query.setState((oldState: Query['state']) => {
+						const data = (await queryFn()) as T;
+						query.setState((state: QueryState<T>) => {
 							return {
-								...oldState,
+								...state,
 								status: 'success',
 								data,
 								lastUpdated: Date.now(),
 							};
 						});
 					} catch (error) {
-						query.setState((oldState: Query['state']) => {
+						query.setState((state: QueryState<T>) => {
 							return {
-								...oldState,
+								...state,
 								status: 'error',
 								error: error as Error,
 							};
 						});
 					} finally {
-						query.setState((oldState: Query['state']) => {
-							return {
-								...oldState,
-								isFetching: false,
-							};
+						query.setState((state: QueryState<T>) => {
+							return { ...state, isFetching: false };
 						});
 					}
 				};
@@ -99,11 +100,11 @@ const createQuery = ({ queryKey, queryFn }: UseQueryParams) => {
 	return query;
 };
 
-export class QueryClient {
-	queries: Set<Query>;
+export class QueryClient<T> {
+	queries: Set<Query<T>>;
 
 	constructor() {
-		this.queries = new Set<Query>();
+		this.queries = new Set<Query<T>>();
 	}
 
 	getQuery = ({ queryFn, queryKey }: UseQueryParams) => {
@@ -112,7 +113,7 @@ export class QueryClient {
 		const query = [...this.queries].find(query => query.queryHash === queryHash);
 		if (query) return query;
 
-		const newQuery = createQuery({ queryKey, queryFn });
+		const newQuery = createQuery<T>({ queryKey, queryFn });
 		this.queries.add(newQuery);
 		return newQuery;
 	};
@@ -125,13 +126,13 @@ export class QueryClient {
 	// 	}
 }
 
-const createQueryObserver = (queryClient: QueryClient, { queryKey, queryFn }: UseQueryParams) => {
+const createQueryObserver = <T>(queryClient: QueryClient<T>, { queryKey, queryFn }: UseQueryParams) => {
 	const query = queryClient.getQuery({
 		queryKey,
 		queryFn,
 	});
 
-	const observer: Subscriber = {
+	const observer: Subscriber<T> = {
 		post: () => {},
 		subscribe: rerender => {
 			const unsubscribe = query.subscribe(observer);
@@ -147,10 +148,10 @@ const createQueryObserver = (queryClient: QueryClient, { queryKey, queryFn }: Us
 	return observer;
 };
 
-export const useQuery = ({ queryKey, queryFn }: UseQueryParams) => {
+export const useQuery = <T>({ queryKey, queryFn }: UseQueryParams): QueryState<T> => {
 	const [, setCount] = useState(0);
 
-	const observer = createQueryObserver(queryClient, {
+	const observer = createQueryObserver<T>(queryClient as QueryClient<T>, {
 		queryKey,
 		queryFn,
 	});
