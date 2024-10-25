@@ -38,7 +38,8 @@ function App() {
 		<div>
 			<div style={{ display: 'flex', justifyContent: 'space-between', width: 300 }}>
 				<button onClick={() => setPage(prevState => prevState + 1)}>Next page</button>
-				<button onClick={() => setPage(prevState => prevState - 1)}>Prev page</button>
+				<button onClick={() => setPage(prevState => Math.max(prevState - 1, 1))}>Prev page</button>
+				<h3>{page}</h3>
 			</div>
 			<Posts page={page} />
 		</div>
