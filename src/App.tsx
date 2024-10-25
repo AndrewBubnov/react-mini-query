@@ -42,11 +42,37 @@ function App() {
 
 	return (
 		<div>
-			<div style={{ display: 'flex', justifyContent: 'space-between', width: 300 }}>
-				<button onClick={() => setPostId(prevState => prevState + 1)}>Next page</button>
-				<button onClick={() => setPostId(prevState => Math.max(prevState - 1, 1))}>Prev page</button>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					width: 300,
+					padding: 20,
+					alignItems: 'baseline',
+				}}
+			>
+				<button
+					onClick={() => setPostId(prevState => prevState + 1)}
+					style={{
+						background: 'steelblue',
+						color: 'white',
+					}}
+				>
+					Next post
+				</button>
+				<button
+					onClick={() => setPostId(prevState => Math.max(prevState - 1, 1))}
+					style={{
+						background: 'steelblue',
+						color: 'white',
+					}}
+				>
+					Prev post
+				</button>
 				<h3>{postId}</h3>
 			</div>
+			<Post postId={postId} />
+			<Post postId={postId} />
 			<Post postId={postId} />
 		</div>
 	);

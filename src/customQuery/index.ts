@@ -26,7 +26,6 @@ type Subscriber<T> = {
 
 type Query<T> = {
 	queryKey: (string | number)[];
-	queryHash: string;
 	fetchingFunction: Promise<void> | null;
 	listeners: Set<() => void>;
 	state: QueryState<T>;
@@ -38,7 +37,6 @@ type Query<T> = {
 const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 	const query: Query<T> = {
 		queryKey,
-		queryHash: JSON.stringify(queryKey),
 		fetchingFunction: null,
 		listeners: new Set(),
 		state: {
