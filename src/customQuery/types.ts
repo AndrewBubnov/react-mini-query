@@ -26,7 +26,7 @@ export type Subscriber<T> = {
 };
 
 export type Query<T> = {
-	queryKey: (string | number)[];
+	queryKey: QueryKey;
 	savedFetch: Promise<void> | null;
 	listeners: Set<() => void>;
 	state: QueryState<T>;
