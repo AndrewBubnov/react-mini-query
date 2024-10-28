@@ -1,16 +1,20 @@
 import { useCallback, useState } from 'react';
 
-export const useMutation = <TData, TVariables>({
-	mutationFn,
-	onSuccess,
-	onError,
-	onSettled,
-}: {
+type UseMutationArgs<TData, TVariables> = {
 	mutationFn: (variables: TVariables, signal: AbortSignal) => Promise<TData>;
+};
+
+type Options<TData, TVariables> = Partial<{
 	onSuccess?: (data: TData, variables: TVariables) => Promise<unknown> | void;
 	onError?: (error: Error, variables: TVariables) => Promise<unknown> | void;
 	onSettled?: (data: TData | undefined, error: Error | undefined, variables: TVariables) => Promise<unknown> | void;
-}) => {
+}>;
+
+export const useMutation = <TData, TVariables>(
+	{ mutationFn }: UseMutationArgs<TData, TVariables>,
+	options: Options<TData, TVariables> = {}
+) => {
+	const { onSuccess, onError, onSettled } = options;
 	const [state, setState] = useState<{
 		isLoading: boolean;
 		error: Error | undefined;
@@ -43,7 +47,7 @@ export const useMutation = <TData, TVariables>({
 				if (onSettled) await onSettled(state.data, state.error, variables);
 			}
 		},
-		[mutationFn, onSuccess, onError, onSettled]
+		[mutationFn, onSuccess, onError, onSettled, state.data, state.error]
 	);
 
 	return { ...state, mutate };

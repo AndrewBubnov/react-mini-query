@@ -24,10 +24,14 @@ const updatePostBody = async (data: PostType) => {
 };
 
 const useUpdatePostBody = () =>
-	useMutation({
-		mutationFn: updatePostBody,
-		onSuccess: (data, { id }) => queryClient.invalidateQueries({ queryKey: ['postData', id] }, data),
-	});
+	useMutation(
+		{
+			mutationFn: updatePostBody,
+		},
+		{
+			onSuccess: (data, { id }) => queryClient.invalidateQueries({ queryKey: ['postData', id] }, data),
+		}
+	);
 
 const useGetPost = (postId: number) =>
 	useQuery<PostType>({
@@ -53,6 +57,7 @@ const Post = ({ postId }: { postId: number }) => {
 			title: data?.title || '',
 			body,
 		});
+		evt.currentTarget.reset();
 	};
 
 	return (

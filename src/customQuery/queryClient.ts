@@ -89,21 +89,25 @@ export class QueryClient<T> {
 		const updatedQueryKeys = [...this.queries.keys()].filter(key =>
 			areArraysEqual(this.queries.get(key)?.queryKey || [], queryKey)
 		);
-		const updatedMap = new Map<string, Query<T>>(
-			updatedQueryKeys.reduce<[string, Query<T>][]>(
-				(acc, cur) => {
-					const updatedValue = {
-						...this.queries.get(cur),
-						queryKey,
-						state: { ...this.queries.get(cur)?.state, data },
-					} as Query<T>;
-					acc.push([cur, updatedValue]);
-					return acc;
-				},
-				[] as [string, Query<T>][]
-			)
-		);
-		updatedQueryKeys.forEach(key => this.queries.get(key)?.notify());
+
+		const updatedMap = new Map<string, Query<T>>();
+
+		updatedQueryKeys.forEach(key => {
+			const query = this.queries.get(key);
+			if (!query) return;
+			if (data) {
+				query.setState(state => ({
+					...state,
+					status: QueryStatus.Success,
+					data,
+					lastUpdated: Date.now(),
+					error: undefined,
+				}));
+			} else {
+				query.fetch();
+			}
+			updatedMap.set(key, query);
+		});
 		this.queries = new Map([...this.queries, ...updatedMap]);
 	};
 }
