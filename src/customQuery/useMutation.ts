@@ -1,17 +1,8 @@
 import { useCallback, useState } from 'react';
-
-type UseMutationArgs<TData, TVariables> = {
-	mutationFn: (variables: TVariables, signal: AbortSignal) => Promise<TData>;
-};
-
-type Options<TData, TVariables> = Partial<{
-	onSuccess?: (data: TData, variables: TVariables) => Promise<unknown> | void;
-	onError?: (error: Error, variables: TVariables) => Promise<unknown> | void;
-	onSettled?: (data: TData | undefined, error: Error | undefined, variables: TVariables) => Promise<unknown> | void;
-}>;
+import { MutateFunction, Options, QueryOptions } from './types.ts';
 
 export const useMutation = <TData, TVariables>(
-	{ mutationFn }: UseMutationArgs<TData, TVariables>,
+	{ mutationFn }: QueryOptions<TData, TVariables>,
 	options: Options<TData, TVariables> = {}
 ) => {
 	const { onSuccess, onError, onSettled } = options;
@@ -25,7 +16,7 @@ export const useMutation = <TData, TVariables>(
 		data: undefined,
 	});
 
-	const mutate = useCallback(
+	const mutateAsync = useCallback(
 		async (variables: TVariables) => {
 			setState(prev => ({ ...prev, isLoading: true }));
 
@@ -33,7 +24,6 @@ export const useMutation = <TData, TVariables>(
 
 			try {
 				const data = await mutationFn(variables, controller.signal);
-
 				if (onSuccess) await onSuccess(data, variables);
 
 				setState({ isLoading: false, error: undefined, data });
@@ -48,6 +38,18 @@ export const useMutation = <TData, TVariables>(
 			}
 		},
 		[mutationFn, onSuccess, onError, onSettled, state.data, state.error]
+	);
+
+	const mutate: MutateFunction<TData, TVariables> = useCallback(
+		(variables, mutateOptions = {}) => {
+			mutateAsync(variables)
+				.then(data => {
+					mutateOptions?.onSuccess?.(data, variables);
+					mutateOptions?.onSettled?.(data, undefined, variables);
+				})
+				.catch(error => mutateOptions?.onError?.(error, variables));
+		},
+		[mutateAsync]
 	);
 
 	return { ...state, mutate };

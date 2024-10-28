@@ -1,14 +1,15 @@
 import { Query, QueryState, QueryStatus, UseQueryParams } from './types.ts';
 
 const areArraysEqual = (arrayA: UseQueryParams['queryKey'], arrayB: UseQueryParams['queryKey']) => {
+	console.log({ arrayA, arrayB });
 	if (arrayA.length !== arrayB.length) return false;
-	return arrayA.every((element, index) => element === arrayB[index]);
+	return arrayA.every((element, index) => String(element) === String(arrayB[index]));
 };
 
 const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 	const query: Query<T> = {
 		queryKey,
-		fetchingFunction: null,
+		savedFetch: null,
 		listeners: new Set(),
 		state: {
 			status: QueryStatus.Pending,
@@ -16,6 +17,7 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 			data: undefined,
 			error: undefined,
 			lastUpdated: 0,
+			refetch: async () => {},
 		},
 
 		notify: () => {
@@ -28,7 +30,7 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 		},
 
 		fetch: async () => {
-			if (query.fetchingFunction) return query.fetchingFunction;
+			if (query.savedFetch) return query.savedFetch;
 
 			query.setState(state => ({
 				...state,
@@ -36,7 +38,7 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 				error: undefined,
 			}));
 
-			query.fetchingFunction = (async () => {
+			query.savedFetch = (async () => {
 				try {
 					const data = (await queryFn()) as T;
 					query.setState(state => ({
@@ -55,12 +57,13 @@ const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
 					query.setState(state => ({
 						...state,
 						isLoading: false,
+						refetch: query.fetch,
 					}));
-					query.fetchingFunction = null;
+					query.savedFetch = null;
 				}
 			})();
 
-			return query.fetchingFunction;
+			return query.savedFetch;
 		},
 	};
 
@@ -94,8 +97,10 @@ export class QueryClient<T> {
 
 		updatedQueryKeys.forEach(key => {
 			const query = this.queries.get(key);
+			console.log({ query });
 			if (!query) return;
 			if (data) {
+				console.log(data);
 				query.setState(state => ({
 					...state,
 					status: QueryStatus.Success,

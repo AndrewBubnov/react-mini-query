@@ -1,0 +1,55 @@
+{
+  "posts": [
+    {
+      "id": "1",
+      "title": "Explore Space",
+      "body": "Discover the mysteries of the universe and what lies beyond our galaxy",
+      "Explore Space 1": "Explore Space 1"
+    },
+    {
+      "id": "2",
+      "title": "The Art of Minimalism",
+      "body": "How simplifying your life can bring more happiness and fulfillment."
+    },
+    {
+      "id": "3",
+      "title": "Introduction to TypeScript",
+      "body": "Learn the basics of TypeScript and how it enhances JavaScript with type safety."
+    },
+    {
+      "id": "4",
+      "title": "The Wonders of Nature",
+      "body": "A closer look at the incredible beauty and complexity of natural ecosystems."
+    },
+    {
+      "id": "5",
+      "title": "The Future of AI",
+      "body": "How artificial intelligence is changing industries and shaping our future."
+    },
+    {
+      "id": "6",
+      "title": "Mastering React Hooks",
+      "body": "An in-depth guide on how to use React hooks for cleaner, more efficient code."
+    },
+    {
+      "id": "7",
+      "title": "Healthy Living Tips",
+      "body": "Simple strategies for improving physical and mental well-being."
+    },
+    {
+      "id": "8",
+      "title": "A Guide to Investing",
+      "body": "Understanding the basics of investing and growing your wealth over time."
+    },
+    {
+      "id": "9",
+      "title": "Photography Essentials",
+      "body": "Everything you need to know to start taking stunning photos."
+    },
+    {
+      "id": "10",
+      "title": "Exploring Quantum Physics",
+      "body": "An overview of the mind-bending concepts in quantum mechanics and physics."
+    }
+  ]
+}

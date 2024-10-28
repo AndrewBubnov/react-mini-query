@@ -1,75 +1,46 @@
 import { FormEvent, useState } from 'react';
-import { queryClient, useQuery } from './customQuery';
-import { useMutation } from './customQuery/useMutation.ts';
-
-type PostType = {
-	id: number;
-	userId: number;
-	title: string;
-	body: string;
-};
-
-const fetchPost = async (postId: number) => {
-	const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`);
-	return res.json();
-};
-
-const updatePostBody = async (data: PostType) => {
-	const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${data.id}`, {
-		method: 'PUT',
-		body: JSON.stringify(data),
-		headers: { 'Content-type': 'application/json; charset=UTF-8' },
-	});
-	return res.json();
-};
-
-const useUpdatePostBody = () =>
-	useMutation(
-		{
-			mutationFn: updatePostBody,
-		},
-		{
-			onSuccess: (data, { id }) => queryClient.invalidateQueries({ queryKey: ['postData', id] }, data),
-		}
-	);
-
-const useGetPost = (postId: number) =>
-	useQuery<PostType>({
-		queryKey: ['postData', postId],
-		queryFn: fetchPost.bind(null, postId),
-	});
+import { PostType } from './types.ts';
+import { useGetPost, useUpdatePost } from './hooks.ts';
+import { queryClient } from './customQuery';
 
 const Post = ({ postId }: { postId: number }) => {
-	const { status, isLoading, error, data } = useGetPost(postId);
-	const updateBodyMutation = useUpdatePostBody();
+	const { isLoading, error, data } = useGetPost(postId);
+	const updateBodyMutation = useUpdatePost();
 
-	if (status === 'pending') return 'Loading...';
+	if (isLoading) return <div style={{ height: 90, padding: 20 }}>Loading...</div>;
 
 	if (error) return 'An error has occurred: ' + error.message;
 
-	const bodyUpdateSubmitHandler = (evt: FormEvent<HTMLFormElement>) => {
+	const updateFieldHandler = (fieldName: keyof PostType) => async (evt: FormEvent<HTMLFormElement>) => {
 		evt.preventDefault();
 		const formData = new FormData(evt.currentTarget);
-		const body = (formData.get('body') as string) || '';
-		updateBodyMutation.mutate({
-			id: data?.id || 0,
-			userId: data?.userId || 0,
-			title: data?.title || '',
-			body,
-		});
+		const fieldValue = formData.get(fieldName) as keyof PostType;
 		evt.currentTarget.reset();
+		updateBodyMutation.mutate({ ...data, [fieldName]: fieldValue } as PostType, {
+			onSuccess: (data, { id }) => queryClient.invalidateQueries({ queryKey: ['postData', id] }, data),
+		});
 	};
 
 	return (
 		<div style={{ padding: 20 }}>
 			{isLoading && <p>Re-fetching...</p>}
-			<div key={data?.id} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-				<span>{data?.title}</span>
+			<div key={data?.id} style={{ display: 'flex', flexDirection: 'column' }}>
+				<h4>{data?.title}</h4>
 				<span>{data?.body}</span>
 			</div>
-			<form onSubmit={bodyUpdateSubmitHandler}>
-				<input type="text" name="body" placeholder="Change body" style={{ width: '60%', height: 20 }} />
-			</form>
+			<div style={{ display: 'flex', gap: 16 }}>
+				<form onSubmit={updateFieldHandler('title')} style={{ width: '100%' }}>
+					<input
+						type="text"
+						name="title"
+						placeholder="Update title..."
+						style={{ width: '100%', height: 20 }}
+					/>
+				</form>
+				<form onSubmit={updateFieldHandler('body')} style={{ width: '100%' }}>
+					<input type="text" name="body" placeholder="Update body..." style={{ width: '100%', height: 20 }} />
+				</form>
+			</div>
 		</div>
 	);
 };
@@ -108,9 +79,11 @@ function App() {
 				</button>
 				<h3>{postId}</h3>
 			</div>
-			<Post postId={postId} />
-			<Post postId={postId} />
-			<Post postId={postId} />
+			<div>
+				<Post postId={postId} />
+				<Post postId={postId} />
+				<Post postId={postId} />
+			</div>
 		</div>
 	);
 }
