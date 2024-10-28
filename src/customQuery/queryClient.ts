@@ -1,12 +1,12 @@
-import { Query, QueryState, QueryStatus, UseQueryParams } from './types.ts';
+import { Query, QueryState, QueryStatus, QueryParams, QueryKey } from './types.ts';
 
-const areArraysEqual = (arrayA: UseQueryParams['queryKey'], arrayB: UseQueryParams['queryKey']) => {
+const areArraysEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
 	console.log({ arrayA, arrayB });
 	if (arrayA.length !== arrayB.length) return false;
 	return arrayA.every((element, index) => String(element) === String(arrayB[index]));
 };
 
-const createQuery = <T>({ queryKey, queryFn }: UseQueryParams): Query<T> => {
+const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 	const query: Query<T> = {
 		queryKey,
 		savedFetch: null,
@@ -77,7 +77,7 @@ export class QueryClient<T> {
 		this.queries = new Map<string, Query<T>>();
 	}
 
-	getQuery = ({ queryFn, queryKey }: UseQueryParams) => {
+	getQuery = ({ queryFn, queryKey }: QueryParams) => {
 		const queryHash = JSON.stringify(queryKey);
 
 		if (!this.queries.has(queryHash)) {
@@ -88,7 +88,7 @@ export class QueryClient<T> {
 		return this.queries.get(queryHash)!;
 	};
 
-	invalidateQueries = ({ queryKey }: { queryKey: UseQueryParams['queryKey'] }, data?: T) => {
+	invalidateQueries = ({ queryKey }: { queryKey: QueryKey }, data?: T) => {
 		const updatedQueryKeys = [...this.queries.keys()].filter(key =>
 			areArraysEqual(this.queries.get(key)?.queryKey || [], queryKey)
 		);
@@ -97,10 +97,8 @@ export class QueryClient<T> {
 
 		updatedQueryKeys.forEach(key => {
 			const query = this.queries.get(key);
-			console.log({ query });
 			if (!query) return;
 			if (data) {
-				console.log(data);
 				query.setState(state => ({
 					...state,
 					status: QueryStatus.Success,

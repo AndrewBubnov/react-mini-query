@@ -1,5 +1,7 @@
-export type UseQueryParams = {
-	queryKey: (string | number)[];
+export type QueryKey = (string | number)[];
+
+export type QueryParams = {
+	queryKey: QueryKey;
 	queryFn: (...args: unknown[]) => Promise<unknown>;
 };
 
