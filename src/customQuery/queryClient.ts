@@ -1,7 +1,7 @@
 import { Query, QueryState, QueryStatus, QueryKey, GetQuery, CreateQuery } from './types.ts';
 import { getPreviousData, savePreviousData } from './previousData.ts';
 
-const areArraysEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
+const isEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
 	if (arrayA.length !== arrayB.length) return false;
 	return arrayA.every((element, index) => String(element) === String(arrayB[index]));
 };
@@ -97,7 +97,7 @@ export class QueryClient<T> {
 
 	invalidateQueries = ({ queryKey }: { queryKey: QueryKey }, data?: T) => {
 		const updatedQueryKeys = [...this.queries.keys()].filter(key =>
-			areArraysEqual(this.queries.get(key)?.queryKey || [], queryKey)
+			isEqual(this.queries.get(key)?.queryKey || [], queryKey)
 		);
 
 		const updatedMap = new Map<string, Query<T>>();
