@@ -24,7 +24,7 @@ const createQueryObserver = <T>(
 export const useQuery = <T>({ queryKey, queryFn, enabled }: UseQuery): QueryState<T> => {
 	const { subscribe, getSnapshot } = useMemo(
 		() => createQueryObserver<T>(queryClient as QueryClient<T>, { queryKey, queryFn, enabled }),
-		[queryKey, queryFn]
+		[queryKey, queryFn, enabled]
 	);
 
 	return useSyncExternalStore(subscribe, getSnapshot);
