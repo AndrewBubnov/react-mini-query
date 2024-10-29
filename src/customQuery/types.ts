@@ -27,7 +27,7 @@ export type Subscriber<T> = {
 
 export type Query<T> = {
 	queryKey: QueryKey;
-	savedFetch: Promise<void> | null;
+	tempFetch: Promise<void> | null;
 	listeners: Set<() => void>;
 	state: QueryState<T>;
 	notify(): void;

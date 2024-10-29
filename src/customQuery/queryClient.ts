@@ -8,7 +8,7 @@ const areArraysEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
 const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 	const query: Query<T> = {
 		queryKey,
-		savedFetch: null,
+		tempFetch: null,
 		listeners: new Set(),
 		state: {
 			status: QueryStatus.Pending,
@@ -29,7 +29,7 @@ const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 		},
 
 		fetch: async () => {
-			if (query.savedFetch) return query.savedFetch;
+			if (query.tempFetch) return query.tempFetch;
 
 			query.setState(state => ({
 				...state,
@@ -37,7 +37,7 @@ const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 				error: undefined,
 			}));
 
-			query.savedFetch = (async () => {
+			query.tempFetch = (async () => {
 				try {
 					const data = (await queryFn()) as T;
 					query.setState(state => ({
@@ -58,11 +58,11 @@ const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 						isLoading: false,
 						refetch: query.fetch,
 					}));
-					query.savedFetch = null;
+					query.tempFetch = null;
 				}
 			})();
 
-			return query.savedFetch;
+			return query.tempFetch;
 		},
 	};
 
