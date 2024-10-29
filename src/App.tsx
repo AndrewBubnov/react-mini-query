@@ -22,15 +22,6 @@ const User = () => {
 				}}
 			>
 				<button
-					onClick={() => setUserId(prevState => Math.min(prevState + 1, 3))}
-					style={{
-						background: 'steelblue',
-						color: 'white',
-					}}
-				>
-					Next user
-				</button>
-				<button
 					onClick={() => setUserId(prevState => Math.max(prevState - 1, 1))}
 					style={{
 						background: 'steelblue',
@@ -39,12 +30,19 @@ const User = () => {
 				>
 					Prev user
 				</button>
+				<button
+					onClick={() => setUserId(prevState => Math.min(prevState + 1, 3))}
+					style={{
+						background: 'steelblue',
+						color: 'white',
+					}}
+				>
+					Next user
+				</button>
+				<h3>{userId}</h3>
 			</div>
-			<div style={{ padding: 20 }}>
-				<div key={data?.id} style={{ display: 'flex', gap: 16 }}>
-					<span>{data?.id}</span>
-					<span>{data?.name}</span>
-				</div>
+			<div style={{ padding: 20 }} key={data?.id}>
+				{data?.name}
 			</div>
 		</div>
 	);
@@ -108,15 +106,6 @@ function App() {
 				}}
 			>
 				<button
-					onClick={() => setPostId(prevState => prevState + 1)}
-					style={{
-						background: 'steelblue',
-						color: 'white',
-					}}
-				>
-					Next post
-				</button>
-				<button
 					onClick={() => setPostId(prevState => Math.max(prevState - 1, 1))}
 					style={{
 						background: 'steelblue',
@@ -124,6 +113,15 @@ function App() {
 					}}
 				>
 					Prev post
+				</button>
+				<button
+					onClick={() => setPostId(prevState => prevState + 1)}
+					style={{
+						background: 'steelblue',
+						color: 'white',
+					}}
+				>
+					Next post
 				</button>
 				<h3>{postId}</h3>
 			</div>

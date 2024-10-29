@@ -43,7 +43,7 @@ export type UseQuery = QueryParams & { enabled?: boolean; keepPreviousData?: boo
 
 export type GetQuery = QueryParams & { keepPreviousData?: boolean };
 
-export type CreateQuery<T> = QueryParams & { previousData?: T; savePreviousData?(arg: T): void };
+export type CreateQuery<T> = QueryParams & { previousData?: T };
 
 export type Options<TData, TVariables> = Partial<{
 	onSuccess: (data: TData, variables: TVariables) => Promise<unknown> | void;

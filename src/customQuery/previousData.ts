@@ -1,33 +1,22 @@
 import { QueryKey } from './types.ts';
+import { isEqual } from './utils.ts';
 
-type PreviousData = {
-	keepPreviousData?: boolean;
-	queryKey: QueryKey;
-};
-
-class PreviousDataStore<T> {
-	previousData: Map<string, T>;
+class PreviousDataStore {
+	previousQueryKeysSet: QueryKey[];
 
 	constructor() {
-		this.previousData = new Map<string, T>();
+		this.previousQueryKeysSet = [];
 	}
 
-	getQueryKeyHash = ({ keepPreviousData, queryKey }: PreviousData) =>
-		keepPreviousData ? JSON.stringify(queryKey.slice(0, queryKey.length - 1)) : undefined;
-
-	getPreviousData = ({ keepPreviousData, queryKey }: PreviousData) => {
-		const previousDataQueryKeyHash = this.getQueryKeyHash({ keepPreviousData, queryKey });
-		return keepPreviousData ? this.previousData.get(previousDataQueryKeyHash!) : undefined;
-	};
-
-	savePreviousData = ({ keepPreviousData, queryKey }: PreviousData) => {
-		const previousDataQueryKeyHash = this.getQueryKeyHash({ keepPreviousData, queryKey });
-		return keepPreviousData
-			? (previousData: T) => {
-					this.previousData.set(previousDataQueryKeyHash!, previousData);
-				}
-			: undefined;
+	getPreviousQueryKeyHash = (queryKey: QueryKey) => {
+		const previousQueryKey = this.previousQueryKeysSet
+			.reverse()
+			.find(el => isEqual(el.slice(0, el.length - 1), queryKey.slice(0, queryKey.length - 1)));
+		if (!this.previousQueryKeysSet.find(el => isEqual(el, queryKey))) {
+			this.previousQueryKeysSet.push(queryKey);
+		}
+		return JSON.stringify(previousQueryKey);
 	};
 }
 
-export const { getPreviousData, savePreviousData } = new PreviousDataStore();
+export const { getPreviousQueryKeyHash } = new PreviousDataStore();
