@@ -1,7 +1,54 @@
 import { FormEvent, useState } from 'react';
 import { PostType } from './types.ts';
-import { useGetPost, useUpdatePost } from './hooks.ts';
+import { useGetPost, useGetUser, useUpdatePost } from './hooks.ts';
 import { queryClient } from './customQuery';
+
+const User = () => {
+	const [userId, setUserId] = useState(1);
+
+	const { data, isLoading } = useGetUser(userId);
+
+	if (isLoading) return <div style={{ height: 90, padding: 20 }}>Loading...</div>;
+
+	return (
+		<div>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					width: 300,
+					padding: 20,
+					alignItems: 'baseline',
+				}}
+			>
+				<button
+					onClick={() => setUserId(prevState => Math.min(prevState + 1, 3))}
+					style={{
+						background: 'steelblue',
+						color: 'white',
+					}}
+				>
+					Next user
+				</button>
+				<button
+					onClick={() => setUserId(prevState => Math.max(prevState - 1, 1))}
+					style={{
+						background: 'steelblue',
+						color: 'white',
+					}}
+				>
+					Prev user
+				</button>
+			</div>
+			<div style={{ padding: 20 }}>
+				<div key={data?.id} style={{ display: 'flex', gap: 16 }}>
+					<span>{data?.id}</span>
+					<span>{data?.name}</span>
+				</div>
+			</div>
+		</div>
+	);
+};
 
 const Post = ({ postId }: { postId: number }) => {
 	const { isLoading, error, data } = useGetPost(postId);
@@ -50,6 +97,7 @@ function App() {
 
 	return (
 		<div>
+			<User />
 			<div
 				style={{
 					display: 'flex',

@@ -4,11 +4,12 @@ import { useMemo, useSyncExternalStore } from 'react';
 
 const createQueryObserver = <T>(
 	queryClient: QueryClient<T>,
-	{ queryKey, queryFn, enabled = true }: UseQuery
+	{ queryKey, queryFn, keepPreviousData, enabled = true }: UseQuery
 ): Subscriber<T> => {
 	const query = queryClient.getQuery({
 		queryKey,
 		queryFn,
+		keepPreviousData,
 	});
 
 	return {
@@ -21,10 +22,10 @@ const createQueryObserver = <T>(
 	};
 };
 
-export const useQuery = <T>({ queryKey, queryFn, enabled }: UseQuery): QueryState<T> => {
+export const useQuery = <T>({ queryKey, queryFn, enabled, keepPreviousData }: UseQuery): QueryState<T> => {
 	const { subscribe, getSnapshot } = useMemo(
-		() => createQueryObserver<T>(queryClient as QueryClient<T>, { queryKey, queryFn, enabled }),
-		[queryKey, queryFn, enabled]
+		() => createQueryObserver<T>(queryClient as QueryClient<T>, { queryKey, queryFn, enabled, keepPreviousData }),
+		[queryKey, queryFn, enabled, keepPreviousData]
 	);
 
 	return useSyncExternalStore(subscribe, getSnapshot);

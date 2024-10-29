@@ -1,11 +1,12 @@
-import { Query, QueryState, QueryStatus, QueryParams, QueryKey } from './types.ts';
+import { Query, QueryState, QueryStatus, QueryKey, GetQuery, CreateQuery } from './types.ts';
+import { getPreviousData, savePreviousData } from './previousData.ts';
 
 const areArraysEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
 	if (arrayA.length !== arrayB.length) return false;
 	return arrayA.every((element, index) => String(element) === String(arrayB[index]));
 };
 
-const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
+const createQuery = <T>({ queryKey, queryFn, previousData, savePreviousData }: CreateQuery<T>): Query<T> => {
 	const query: Query<T> = {
 		queryKey,
 		tempFetch: null,
@@ -33,7 +34,8 @@ const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 
 			query.setState(state => ({
 				...state,
-				isLoading: true,
+				...(previousData && { data: previousData }),
+				isLoading: !previousData,
 				error: undefined,
 			}));
 
@@ -46,6 +48,7 @@ const createQuery = <T>({ queryKey, queryFn }: QueryParams): Query<T> => {
 						data,
 						lastUpdated: Date.now(),
 					}));
+					if (savePreviousData) savePreviousData(data);
 				} catch (error) {
 					query.setState(state => ({
 						...state,
@@ -76,11 +79,16 @@ export class QueryClient<T> {
 		this.queries = new Map<string, Query<T>>();
 	}
 
-	getQuery = ({ queryFn, queryKey }: QueryParams) => {
+	getQuery = ({ queryFn, queryKey, keepPreviousData }: GetQuery) => {
 		const queryHash = JSON.stringify(queryKey);
 
 		if (!this.queries.has(queryHash)) {
-			const newQuery = createQuery<T>({ queryKey, queryFn });
+			const newQuery = createQuery<T>({
+				queryKey,
+				queryFn,
+				previousData: getPreviousData({ queryKey, keepPreviousData }) as T,
+				savePreviousData: savePreviousData({ queryKey, keepPreviousData }),
+			});
 			this.queries.set(queryHash, newQuery);
 		}
 

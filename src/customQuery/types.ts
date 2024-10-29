@@ -39,7 +39,11 @@ export type QueryOptions<TData, TVariables> = {
 	mutationFn: (variables: TVariables, signal: AbortSignal) => Promise<TData>;
 };
 
-export type UseQuery = QueryParams & { enabled?: boolean };
+export type UseQuery = QueryParams & { enabled?: boolean; keepPreviousData?: boolean };
+
+export type GetQuery = QueryParams & { keepPreviousData?: boolean };
+
+export type CreateQuery<T> = QueryParams & { previousData?: T; savePreviousData?(arg: T): void };
 
 export type Options<TData, TVariables> = Partial<{
 	onSuccess: (data: TData, variables: TVariables) => Promise<unknown> | void;
