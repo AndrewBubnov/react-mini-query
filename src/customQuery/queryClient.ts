@@ -1,7 +1,6 @@
 import { Query, QueryState, QueryStatus, QueryParams, QueryKey } from './types.ts';
 
 const areArraysEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
-	console.log({ arrayA, arrayB });
 	if (arrayA.length !== arrayB.length) return false;
 	return arrayA.every((element, index) => String(element) === String(arrayB[index]));
 };
