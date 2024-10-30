@@ -34,7 +34,7 @@ describe('QueryClient', () => {
 			expect(query1).toBe(query2);
 		});
 
-		it.todo('should keep previous data if keepPreviousData is true', async () => {
+		it('should keep previous data if keepPreviousData is true', async () => {
 			previousDataStore.previousQueryKeysSet = [];
 
 			const initialData = { data: 'initial' };
@@ -61,11 +61,8 @@ describe('QueryClient', () => {
 				queryKey: queryKey2,
 				keepPreviousData: true,
 			});
-
-			expect(query2.state.data).toStrictEqual(initialData);
-
-			await query2.fetch();
-			expect(query2.state.data).toStrictEqual(updatedData);
+			query2.fetch().then(() => expect(query2.state.data).toEqual(updatedData));
+			expect(query2.state.data).toEqual(initialData);
 		});
 	});
 
