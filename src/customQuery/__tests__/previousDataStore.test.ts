@@ -8,7 +8,7 @@ describe('PreviousDataStore', () => {
 
 	it('should correctly identify previous query keys', () => {
 		const hash1 = getPreviousQueryKeyHash(['test', 1]);
-		expect(hash1).toBe('');
+		expect(hash1).toBe(undefined);
 		expect(previousDataStore.previousQueryKeysSet).toEqual([['test', 1]]);
 
 		const hash2 = getPreviousQueryKeyHash(['test', 2]);
@@ -23,8 +23,9 @@ describe('PreviousDataStore', () => {
 	});
 
 	it('should handle different base keys', () => {
+		getPreviousQueryKeyHash(['posts', 1]);
 		getPreviousQueryKeyHash(['users', 1]);
-		const hash = getPreviousQueryKeyHash(['posts', 1]);
-		expect(hash).toBe('["users",1]');
+		const hash = getPreviousQueryKeyHash(['posts', 2]);
+		expect(hash).toBe('["posts",1]');
 	});
 });

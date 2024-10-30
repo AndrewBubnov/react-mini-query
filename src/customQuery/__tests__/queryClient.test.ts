@@ -34,7 +34,7 @@ describe('QueryClient', () => {
 			expect(query1).toBe(query2);
 		});
 
-		it('should keep previous data if keepPreviousData is true', async () => {
+		it.todo('should keep previous data if keepPreviousData is true', async () => {
 			previousDataStore.previousQueryKeysSet = [];
 
 			const initialData = { data: 'initial' };

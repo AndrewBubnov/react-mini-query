@@ -9,16 +9,13 @@ class PreviousDataStore {
 	}
 
 	getPreviousQueryKeyHash = (queryKey: QueryKey) => {
-		const previousQueryKey = [...this.previousQueryKeysSet].reverse().find(queryKey => {
-			const basePrevKey = queryKey.slice(0, -1);
-			return isEqual(basePrevKey, queryKey.slice(0, -1));
-		});
-
-		if (!this.previousQueryKeysSet.some(key => isEqual(key, queryKey))) this.previousQueryKeysSet.push(queryKey);
-
-		console.log({ previousQueryKeysSet: this.previousQueryKeysSet, queryKey, previousQueryKey });
-
-		return previousQueryKey ? JSON.stringify(previousQueryKey) : '';
+		const previousQueryKey = [...this.previousQueryKeysSet]
+			.reverse()
+			.find(prevKey => isEqual(prevKey.slice(0, prevKey.length - 1), queryKey.slice(0, queryKey.length - 1)));
+		if (!this.previousQueryKeysSet.find(prevKey => isEqual(prevKey, queryKey))) {
+			this.previousQueryKeysSet.push(queryKey);
+		}
+		return JSON.stringify(previousQueryKey);
 	};
 }
 
