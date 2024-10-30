@@ -1,50 +1,13 @@
-# React + TypeScript + Vite
+# React-mini-query
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a custom implementation of core functionalities from the `tanstack-query` library, including optimized hooks `useQuery` and `useMutation` for efficient data fetching, updating, and caching. Designed with performance in mind, this library includes essential features like `invalidateQueries` and the `keepPreviousData` flag to support smooth pagination without loading states. The library is fully typed in TypeScript, and its API closely matches the original library for ease of use.
 
-Currently, two official plugins are available:
+## Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Optimized `useQuery` and `useMutation` Hooks**: Efficient data fetching, updating, and caching with minimal re-renders and smooth integration with your React components.
+- **`invalidateQueries` Support**: Allows selective query invalidation, enabling automatic re-fetching of stale data after a mutation or when dependencies change.
+- **Smooth Pagination with `keepPreviousData`**: Allows retaining previous data during paginated queries, preventing loading indicators between page transitions.
+- **TypeScript Support**: The library is fully typed, providing a robust development experience and minimizing runtime errors.
+- **API Consistency**: The hooks are designed to have an API consistent with `tanstack-query` for easy transition and predictable behavior.
+- **Comprehensive Test Coverage**: The core of the project is thoroughly tested using `Vitest`, ensuring high reliability and robustness across various scenarios.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
