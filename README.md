@@ -1,6 +1,6 @@
 # React-mini-query
 
-This project is a custom implementation of core functionalities from the `tanstack-query` library, including optimized hooks `useQuery` and `useMutation` for efficient data fetching, updating, and caching. Designed with performance in mind, this library includes essential features like `invalidateQueries` and the `keepPreviousData` flag to support smooth pagination without loading states. The library is fully typed in TypeScript, and its API closely matches the original library for ease of use.
+This project is a custom implementation of core functionalities from the [tanstack-query](https://tanstack.com/query/latest) library, including optimized hooks `useQuery` and `useMutation` for efficient data fetching, updating, and caching. Designed with performance in mind, this library includes essential features like `invalidateQueries` and the `keepPreviousData` flag to support smooth pagination without loading states. The library is fully typed in TypeScript, and its API closely matches the original library for ease of use.
 
 ## Key Features
 
