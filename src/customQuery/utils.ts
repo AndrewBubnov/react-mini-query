@@ -1,6 +1,9 @@
 import { QueryKey } from './types.ts';
 
-export const isEqual = (arrayA: QueryKey, arrayB: QueryKey) => {
-	if (arrayA.length !== arrayB.length) return false;
-	return arrayA.every((element, index) => String(element) === String(arrayB[index]));
+export const isEqual = (queryKey1: QueryKey, queryKey2: QueryKey) => {
+	return (
+		Array.isArray(queryKey1) &&
+		Array.isArray(queryKey2) &&
+		queryKey2.every((key, index) => String(queryKey1[index]) === String(key))
+	);
 };

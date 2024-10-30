@@ -1,6 +1,6 @@
 import { Query, QueryState, QueryStatus, QueryKey, GetQuery, CreateQuery } from './types.ts';
 import { isEqual } from './utils.ts';
-import { getPreviousQueryKeyHash } from './previousData.ts';
+import { getPreviousQueryKeyHash } from './previousDataStore.ts';
 
 const createQuery = <T>({ queryKey, queryFn, previousData }: CreateQuery<T>): Query<T> => {
 	const query: Query<T> = {
