@@ -1,6 +1,7 @@
-import { queryClient, QueryClient } from './queryClient.ts';
+import { QueryClient } from './QueryClient.ts';
 import { QueryState, Subscriber, UseQuery } from './types.ts';
 import { useMemo, useSyncExternalStore } from 'react';
+import { useQueryClient } from './useQueryClient.ts';
 
 const createQueryObserver = <T>(
 	queryClient: QueryClient<T>,
@@ -23,9 +24,10 @@ const createQueryObserver = <T>(
 };
 
 export const useQuery = <T>({ queryKey, queryFn, enabled, keepPreviousData }: UseQuery): QueryState<T> => {
+	const queryClient = useQueryClient();
 	const { subscribe, getSnapshot } = useMemo(
 		() => createQueryObserver<T>(queryClient as QueryClient<T>, { queryKey, queryFn, enabled, keepPreviousData }),
-		[queryKey, queryFn, enabled, keepPreviousData]
+		[queryClient, queryKey, queryFn, enabled, keepPreviousData]
 	);
 
 	return useSyncExternalStore(subscribe, getSnapshot);

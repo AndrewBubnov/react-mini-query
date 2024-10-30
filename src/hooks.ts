@@ -1,12 +1,19 @@
 import { useMutation } from './react-mini-query/useMutation.ts';
 import { fetchPost, fetchUser, updatePost } from './api.ts';
-import { useQuery } from './react-mini-query';
+import { useQuery, useQueryClient } from './react-mini-query';
 import { PostType, UserType } from './types.ts';
 
-export const useUpdatePost = () =>
-	useMutation({
-		mutationFn: updatePost,
-	});
+export const useUpdatePost = () => {
+	const queryClient = useQueryClient();
+	return useMutation(
+		{
+			mutationFn: updatePost,
+		},
+		{
+			onSuccess: (data, { id }) => queryClient.invalidateQueries({ queryKey: ['postData', id] }, data),
+		}
+	);
+};
 
 export const useGetPost = (postId: number) =>
 	useQuery<PostType>({

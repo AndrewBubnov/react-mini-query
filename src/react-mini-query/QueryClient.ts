@@ -1,6 +1,6 @@
-import { Query, QueryState, QueryStatus, QueryKey, GetQuery, CreateQuery } from './types.ts';
+import { Query, QueryState, QueryStatus, QueryKey, GetQuery, CreateQuery, QueryClientProps } from './types.ts';
 import { isEqual } from './utils.ts';
-import { getPreviousQueryKeyHash } from './previousDataStore.ts';
+import { getPreviousQueryKeyHash } from './PreviousDataStore.ts';
 
 const createQuery = <T>({ queryKey, queryFn, previousData }: CreateQuery<T>): Query<T> => {
 	const query: Query<T> = {
@@ -69,23 +69,42 @@ const createQuery = <T>({ queryKey, queryFn, previousData }: CreateQuery<T>): Qu
 
 export class QueryClient<T> {
 	queries: Map<string, Query<T>>;
+	gcTime: number;
 
-	constructor() {
+	constructor({ gcTime = 5 * 1000 }: QueryClientProps = {}) {
 		this.queries = new Map<string, Query<T>>();
+		this.gcTime = gcTime;
 	}
 
+	createNewQuery = ({ queryFn, queryKey, keepPreviousData }: GetQuery) => {
+		const queryHash = JSON.stringify(queryKey);
+		const newQuery = createQuery<T>({
+			queryKey,
+			queryFn,
+			previousData: keepPreviousData
+				? this.queries.get(getPreviousQueryKeyHash(queryKey))?.state.data
+				: undefined,
+		});
+		this.queries.set(queryHash, newQuery);
+	};
+
+	removeObsolete = () => {
+		const queryHashList = [...this.queries].map(([queryHash]) => queryHash);
+		queryHashList.forEach(queryHash => {
+			const query = this.queries.get(queryHash);
+			if (query?.state.status === QueryStatus.Success && Date.now() - query.state.lastUpdated > this.gcTime) {
+				this.queries.delete(queryHash);
+			}
+		});
+	};
+
 	getQuery = ({ queryFn, queryKey, keepPreviousData }: GetQuery) => {
+		this.removeObsolete();
+
 		const queryHash = JSON.stringify(queryKey);
 
 		if (!this.queries.has(queryHash)) {
-			const newQuery = createQuery<T>({
-				queryKey,
-				queryFn,
-				previousData: keepPreviousData
-					? this.queries.get(getPreviousQueryKeyHash(queryKey))?.state.data
-					: undefined,
-			});
-			this.queries.set(queryHash, newQuery);
+			this.createNewQuery({ queryKey, queryFn, keepPreviousData });
 		}
 
 		return this.queries.get(queryHash)!;
@@ -117,5 +136,3 @@ export class QueryClient<T> {
 		this.queries = new Map([...this.queries, ...updatedMap]);
 	};
 }
-
-export const queryClient = new QueryClient();

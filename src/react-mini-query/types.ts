@@ -1,3 +1,6 @@
+import { ReactNode } from 'react';
+import { QueryClient } from './QueryClient.ts';
+
 export type QueryKey = (string | number)[];
 
 export type QueryParams = {
@@ -52,3 +55,10 @@ export type Options<TData, TVariables> = Partial<{
 }>;
 
 export type MutateFunction<TData, TVariables> = (variables: TVariables, options?: Options<TData, TVariables>) => void;
+
+export type QueryClientProps = Partial<{ gcTime: number }>;
+
+export type QueryProviderType = {
+	children: ReactNode;
+	client: QueryClient<unknown>;
+};

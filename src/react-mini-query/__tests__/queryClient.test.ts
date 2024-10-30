@@ -1,7 +1,7 @@
-import { QueryClient } from '../queryClient.ts';
+import { QueryClient } from '../QueryClient.ts';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { QueryStatus } from '../types.ts';
-import { previousDataStore } from '../previousDataStore.ts';
+import { previousDataStore } from '../PreviousDataStore.ts';
 
 describe('QueryClient', () => {
 	let queryClient: QueryClient<unknown>;

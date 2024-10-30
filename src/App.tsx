@@ -1,7 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { PostType } from './types.ts';
 import { useGetPost, useGetUser, useUpdatePost } from './hooks.ts';
-import { queryClient } from './react-mini-query';
 
 const User = () => {
 	const [userId, setUserId] = useState(1);
@@ -61,9 +60,7 @@ const Post = ({ postId }: { postId: number }) => {
 		const formData = new FormData(evt.currentTarget);
 		const fieldValue = formData.get(fieldName) as keyof PostType;
 		evt.currentTarget.reset();
-		updateBodyMutation.mutate({ ...data, [fieldName]: fieldValue } as PostType, {
-			onSuccess: (data, { id }) => queryClient.invalidateQueries({ queryKey: ['postData', id] }, data),
-		});
+		updateBodyMutation.mutate({ ...data, [fieldName]: fieldValue } as PostType);
 	};
 
 	return (

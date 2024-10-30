@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getPreviousQueryKeyHash, previousDataStore } from '../previousDataStore.ts';
+import { getPreviousQueryKeyHash, previousDataStore } from '../PreviousDataStore.ts';
 
 describe('PreviousDataStore', () => {
 	beforeEach(() => {
