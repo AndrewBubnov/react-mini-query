@@ -7,6 +7,8 @@ This project is a custom implementation of core functionalities from the `tansta
 - **Optimized `useQuery` and `useMutation` Hooks**: Efficient data fetching, updating, and caching with minimal re-renders and smooth integration with your React components.
 - **`invalidateQueries` Support**: Allows selective query invalidation, enabling automatic re-fetching of stale data after a mutation or when dependencies change.
 - **Smooth Pagination with `keepPreviousData`**: Allows retaining previous data during paginated queries, preventing loading indicators between page transitions.
+- **refetchOnWindowFocus**: Automatically refetches queries when the window regains focus, ensuring up-to-date data visibility.
+- **Global Garbage Collection Time**: Defines a time limit for removing stale queries, maintaining an optimal memory footprint.
 - **TypeScript Support**: The library is fully typed, providing a robust development experience and minimizing runtime errors.
 - **API Consistency**: The hooks are designed to have an API consistent with `tanstack-query` for easy transition and predictable behavior.
 - **Comprehensive Test Coverage**: The core of the project is thoroughly tested using `Vitest`, ensuring high reliability and robustness across various scenarios.
