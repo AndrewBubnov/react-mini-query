@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import { MutateFunction, Options, QueryOptions } from './types.ts';
+import { MutateFunction, Options } from './types.ts';
 
 export const useMutation = <TData, TVariables>(
-	{ mutationFn }: QueryOptions<TData, TVariables>,
+	mutationFn: (variables: TVariables, signal: AbortSignal) => Promise<TData>,
 	options: Options<TData, TVariables> = {}
 ) => {
 	const { onSuccess, onError, onSettled } = options;

@@ -26,6 +26,7 @@ export type QueryState<T> = {
 export type Subscriber<T> = {
 	subscribe: (callback: () => void) => () => void;
 	getSnapshot: () => QueryState<T>;
+	fetch: () => Promise<void>;
 };
 
 export type Query<T> = {
@@ -38,11 +39,9 @@ export type Query<T> = {
 	fetch(): Promise<void>;
 };
 
-export type QueryOptions<TData, TVariables> = {
-	mutationFn: (variables: TVariables, signal: AbortSignal) => Promise<TData>;
-};
+export type UseQuery = QueryParams & { enabled?: boolean; keepPreviousData?: boolean; refetchOnWindowFocus?: boolean };
 
-export type UseQuery = QueryParams & { enabled?: boolean; keepPreviousData?: boolean };
+export type CreateQueryObserver = Omit<UseQuery, 'refetchOnWindowFocus'>;
 
 export type GetQuery = QueryParams & { keepPreviousData?: boolean };
 
