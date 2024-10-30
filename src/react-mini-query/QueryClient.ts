@@ -76,19 +76,8 @@ export class QueryClient<T> {
 		this.gcTime = gcTime;
 	}
 
-	createNewQuery = ({ queryFn, queryKey, keepPreviousData }: GetQuery) => {
-		const queryHash = JSON.stringify(queryKey);
-		const newQuery = createQuery<T>({
-			queryKey,
-			queryFn,
-			previousData: keepPreviousData
-				? this.queries.get(getPreviousQueryKeyHash(queryKey))?.state.data
-				: undefined,
-		});
-		this.queries.set(queryHash, newQuery);
-	};
-
 	removeObsolete = () => {
+		if (!this.gcTime) return;
 		const queryHashList = [...this.queries].map(([queryHash]) => queryHash);
 		queryHashList.forEach(queryHash => {
 			const query = this.queries.get(queryHash);
@@ -104,7 +93,14 @@ export class QueryClient<T> {
 		const queryHash = JSON.stringify(queryKey);
 
 		if (!this.queries.has(queryHash)) {
-			this.createNewQuery({ queryKey, queryFn, keepPreviousData });
+			const newQuery = createQuery<T>({
+				queryKey,
+				queryFn,
+				previousData: keepPreviousData
+					? this.queries.get(getPreviousQueryKeyHash(queryKey))?.state.data
+					: undefined,
+			});
+			this.queries.set(queryHash, newQuery);
 		}
 
 		return this.queries.get(queryHash)!;
