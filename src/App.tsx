@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { PostType } from './types.ts';
 import { useGetPost, useGetUser, useUpdatePost } from './hooks.ts';
-import { queryClient } from './customQuery';
+import { queryClient } from './react-mini-query';
 
 const User = () => {
 	const [userId, setUserId] = useState(1);
